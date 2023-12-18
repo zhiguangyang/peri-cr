@@ -3,34 +3,16 @@
 
 label_list = []
 pre_list = []
-delete_key = set()
-key_label = {}
-key_pre = {}
-key_click_num = {}
-key_impress_num = {}
 sctr_map = {}
 sku_imp = {}
 sku_clk = {}
 sku_sctr_imp = {}
 sku_sctr_clk = {}
-total_impress_num = 0
-total_click = 0
-sctr_imp = 0.0
-sctr_clk = 0.0
-sctr_ratio = 0.0
-
-
-
 
 def cal_sctr_value(result_file_path):
-    global total_impress_num
-    global total_click
-    global gauc
-    global impress_gauc
-    global chuangyi_sku_list
     global sctr_map
-    f=open(result_file_path)
-    all_lines=f.readlines()
+    with open(result_file_path, 'r') as result_lines:
+        all_lines = result_lines.readlines()
     
     # get all predict labels
 
@@ -67,35 +49,35 @@ def cal_sctr_value(result_file_path):
         label_list.append(label)
         pre_list.append(pre)
 
-    f.close()
+    result_lines.close()
 
 
 def main(predict_result_file):
-    with open(predict_result_file, 'r') as result_file:
-        cal_sctr_value(result_file)
+    cal_sctr_value(predict_result_file)
 
-        for key,value in sctr_map.items():
-            sku=key.split('@')[1]
-            if value[1] == 1:
-                if sku in sku_sctr_imp:
-                    sku_sctr_imp[sku] += 1
-                    sku_sctr_clk[sku] += value[2]
-                else:
-                    sku_sctr_imp[sku] = 1
-                    sku_sctr_clk[sku] = value[2]
-        for key,value in sku_imp.items():
-            if key in sku_sctr_imp:
-                sctr_imp += value
-                sctr_clk += sku_sctr_clk[key] / float(sku_sctr_imp[key]) * value
-                sctr_ratio += float(sku_sctr_imp[key])
+    nsctr_imp = 0.0
+    nsctr_clk = 0.0
+    nsctr_ratio = 0.0
+
+    for key,value in sctr_map.items():
+        sku=key.split('@')[1]
+        if value[1] == 1:
+            if sku in sku_sctr_imp:
+                sku_sctr_imp[sku] += 1
+                sku_sctr_clk[sku] += value[2]
             else:
-                sctr_imp += value
-                sctr_clk += sku_clk[key]
-                sctr_ratio += value
-        print("sctr: ", sctr_clk/sctr_imp)
+                sku_sctr_imp[sku] = 1
+                sku_sctr_clk[sku] = value[2]
+    for key,value in sku_imp.items():
+        if key in sku_sctr_imp:
+            nsctr_imp += value
+            nsctr_clk += sku_sctr_clk[key] / float(sku_sctr_imp[key]) * value
+            nsctr_ratio += float(sku_sctr_imp[key])
+        else:
+            nsctr_imp += value
+            nsctr_clk += sku_clk[key]
+            nsctr_ratio += value
+    print("nsctr: ", nsctr_clk/nsctr_imp)
         
-    
-
-
-predict_result_file = 'predict_result.txt'
+predict_result_file = 'nsctr_test_data'
 main(predict_result_file)
